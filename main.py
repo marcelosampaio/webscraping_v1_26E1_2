@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import logging
 import os
 import argparse
+from datetime import datetime
 
 from extracao import extrair_conteudo_html
 from carga import salvar_csv, carregar_arquivo
@@ -30,6 +31,12 @@ FOLDER_NAME = os.path.dirname(os.path.abspath(__file__))
 TYPE_EXECUTION = ""
 
 
+def gerar_nome_arquivo(prefixo: str = "livros") -> str:
+    """Gera um nome de arquivo com timestamp no formato: {prefixo}_YYYYMMDD_HHMMSS.csv"""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    return f"{prefixo}_{timestamp}.csv"
+
+
 def main():
     print("Iniciando processo de web scraping...")
     logging.info("Capturando argumentos")
@@ -46,8 +53,8 @@ def main():
         "--file",
         type=str,
         required=False,
-        default="output.csv",
-        help="Nome do arquivo CSV de saída",
+        default=None,
+        help="Nome do arquivo CSV de saída (se não informado, será gerado automaticamente)",
     )
     parser.add_argument(
         "--type-execution",
@@ -59,8 +66,11 @@ def main():
 
     args = parser.parse_args()
     URL = args.url
-    FILE_NAME = args.file
+    # se o usuário não informou --file, geramos um nome com timestamp
+    FILE_NAME = args.file if args.file else gerar_nome_arquivo()
     TYPE_EXECUTION = args.type_execution
+
+    logging.info(f"Arquivo de saída definido como: {FILE_NAME}")
 
     if TYPE_EXECUTION == "webscraping":
         logging.info("Iniciando execução do webscrapping")
